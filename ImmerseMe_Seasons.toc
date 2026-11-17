@@ -1,0 +1,16 @@
+## Interface: 16001
+## Title: ImmerseMe: Seasons
+## Notes: The turning year on your minimap: the rim takes the season's colour, frosts over on cold mornings, and a year-arc shows the festivals ahead. Hover the rim for the date, sunrise and sunset.
+## Author: holyc4t
+## Version: @project-version@
+## IconTexture: Interface\AddOns\ImmerseMe_Seasons\Media\icon
+## X-Category: Roleplay
+## X-Suite: ImmerseMe
+## X-License: MIT
+## SavedVariables: ImmerseMeSeasonsDB
+
+Data.lua
+Almanac.lua
+Climate.lua
+Core.lua
+UI.lua
