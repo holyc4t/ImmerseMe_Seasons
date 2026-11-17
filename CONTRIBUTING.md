@@ -55,6 +55,7 @@ Core.lua                  frost, season state, tooltip text
 UI.lua                    the rim, the arc, the tooltip, slash commands
 Media/                    generated textures (TGA)
 tools/make_textures.py    generates every texture in Media/
+tools/make_avatar.py      renders the icon at 512 px: docs/images/avatar.png (CurseForge)
 tests/                    lua tests/run.lua
 docs/                     documentation
 ```
