@@ -299,10 +299,13 @@ def notch():
     c.save("notch")
 
 
-def icon():
-    """128x128 in the shared ImmerseMe frame (gold bevelled square, gold-ringed medallion)."""
-    c = Canvas(128)
-    K = 2.0
+def icon(size=128):
+    """The addon-list icon in the shared ImmerseMe frame (gold bevelled square, gold-ringed
+    medallion), drawn on a 64 grid scaled to `size` px. Returns the canvas: main() saves the
+    128 px Media/icon.tga, tools/make_avatar.py renders 512 px for the CurseForge avatar."""
+    c = Canvas(size)
+    s = size / 128.0                 # 1 at the game's 128 px
+    K = 2.0 * s
 
     def rrect(x0, y0, x1, y1, rad):
         X0, Y0, X1, Y1, R = x0 * K, y0 * K, x1 * K, y1 * K, rad * K
@@ -318,29 +321,36 @@ def icon():
 
     gold_light, gold_dark = (1.0, 0.86, 0.48), (0.55, 0.35, 0.12)
     c.fill(rrect(0.5, 0.5, 63.5, 63.5, 7), (0.10, 0.06, 0.03))
-    c.fill(rrect(1.6, 1.6, 62.4, 62.4, 6), lambda x, y: mix(gold_light, gold_dark, clamp((x + y) / 256)))
+    c.fill(rrect(1.6, 1.6, 62.4, 62.4, 6), lambda x, y: mix(gold_light, gold_dark, clamp((x + y) / (256 * s))))
     c.fill(rrect(4.2, 4.2, 59.8, 59.8, 4), (0.12, 0.08, 0.04))
     c.fill(rrect(5.2, 5.2, 58.8, 58.8, 3.4),
-           lambda x, y: mix((0.30, 0.24, 0.18), (0.10, 0.07, 0.05), clamp(math.hypot(x - 40, y - 36) / 104)))
+           lambda x, y: mix((0.30, 0.24, 0.18), (0.10, 0.07, 0.05),
+                            clamp(math.hypot(x - 40 * s, y - 36 * s) / (104 * s))))
     c.fill(disc(32, 32, 25.5), (0.12, 0.07, 0.02))
-    c.fill(disc(32, 32, 24.4), lambda x, y: mix(gold_light, gold_dark, clamp((x * 0.4 + y) / 179)))
+    c.fill(disc(32, 32, 24.4), lambda x, y: mix(gold_light, gold_dark, clamp((x * 0.4 + y) / (179 * s))))
     c.fill(disc(32, 32, 21.6), (0.10, 0.06, 0.02))
     # the medallion's sky: a clear autumn day, cool blue above, warm haze low down
     sky_top, sky_bottom = (0.30, 0.52, 0.78), (0.98, 0.78, 0.50)
-    c.fill(disc(32, 32, 20.8), lambda x, y: mix(sky_top, sky_bottom, clamp((y - 22) / 84)))
+    c.fill(disc(32, 32, 20.8), lambda x, y: mix(sky_top, sky_bottom, clamp((y - 22 * s) / (84 * s))))
     # the emblem, painted like the season icons on the arc and clipped to the medallion: a turning
     # maple leaf, the year on its way from autumn into winter, with the first snowflake beside it
-    emblem = Canvas(128)
+    emblem = Canvas(size)
     p = decor.Painter(emblem)
-    decor.maple(p, 58, 90, 14, 46, (1, .74, .26), (.78, .26, .04))
-    decor.snowflake(p, 90, 88, 15, rot=15)
+    outline = decor.OUTLINE_PX
+    decor.OUTLINE_PX = outline * s   # keep the painted contour as thick, relative to the icon
+    try:
+        decor.maple(p, 58 * s, 90 * s, 14, 46 * s, (1, .74, .26), (.78, .26, .04))
+        decor.snowflake(p, 90 * s, 88 * s, 15 * s, rot=15)
+    finally:
+        decor.OUTLINE_PX = outline
+    r, mid = 41.6 * s, 64 * s
     for i, q in enumerate(emblem.px):
-        if q[3] > 0 and math.hypot(i % 128 + .5 - 64, i // 128 + .5 - 64) <= 41.6:
-            c.blend(i % 128, i // 128, q[:3], q[3])
+        if q[3] > 0 and math.hypot(i % size + .5 - mid, i // size + .5 - mid) <= r:
+            c.blend(i % size, i // size, q[:3], q[3])
     # glassy highlight, as on the siblings' medallions
-    c.each(lambda x, y: ((1, 1, 1), 0.10 * (1 - smoothstep(0, 32, math.hypot(x - 52, y - 44) - 12)))
-           if math.hypot(x - 64, y - 64) <= 41.6 else None)
-    c.save("icon")
+    c.each(lambda x, y: ((1, 1, 1), 0.10 * (1 - smoothstep(0, 32 * s, math.hypot(x - 52 * s, y - 44 * s) - 12 * s)))
+           if math.hypot(x - mid, y - mid) <= r else None)
+    return c
 
 
 def decorations():
@@ -459,7 +469,7 @@ def main():
     frost()
     seasonarc_preview(yeararc(), seasonicons())
     notch()
-    icon()
+    icon().save("icon")
     drift()
     preview(decorations())
     print("wrote", ", ".join(sorted(f for f in os.listdir(OUT) if f.endswith(".tga"))), "+ docs/images/seasons.png, seasonarc.png")
